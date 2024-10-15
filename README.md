@@ -18,10 +18,12 @@ The ProxyCache CLI Tool is a lightweight command-line application designed to ac
    ```bash
    git clone https://github.com/JesterSe7en/ProxyCache.git
    cd cache-proxy-cli
+   ```
 2. ** Install Dependencies**: Ensure you ahve Go installed, then run:
    ```bash
    go mod tidy
-3. Set up Redis: Install REdis and ensure it is running on your local machine or configure it to connect to a remote Redis server.
+   ```
+3. Set up Redis: Install Redis and ensure it is running on your local machine or configure it to connect to a remote Redis server.
 
 
 ## Usage 📝
@@ -29,7 +31,7 @@ The ProxyCache CLI Tool is a lightweight command-line application designed to ac
 ### Prerequisites
  Ensure that the environment variables `REDIS_URL` and `REDIS_PASSWORD` are set correctly.
 
-Run the cace proxy CLI tool with the following command:
+Run the ProxyCache CLI tool with the following command:
 ```bash
 cacheProxy --port <port> --redirectURL <redirectURL>
 ```
