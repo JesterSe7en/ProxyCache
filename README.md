@@ -1,6 +1,6 @@
 # ProxyCache
 
-## Overview
+## Overview 📖
 
 The ProxyCache CLI Tool is a lightweight command-line application designed to act as an intermediary between clients and external web services. It enhances response times and reduces load on the external services by leveraging a caching mechanism powered by Redis. The tool intelligently stores and retrieves HTTP responses based on client requests, ensuring optimal performance and efficient resource management.
 
@@ -53,7 +53,7 @@ cacheProxy --port <port> --redirectURL <redirectURL>
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
 
-## Acknowledgements
+## Acknowledgements 🙏
 
 - [Redis](https://redis.io/)
 - [Go](https://golang.org/)
