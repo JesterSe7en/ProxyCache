@@ -8,39 +8,39 @@ import (
 )
 
 var Logger *log.Logger
+var fileToWrite *os.File // Move file handle to a global variable for proper closure handling
 
 func initLogger() error {
-	// Check if log already exist, if not create it
+	year, month, day := time.Now().Date()
+	logFilename := fmt.Sprintf("%04d-%02d-%02d.txt", year, month, day)
 
-	todayDate, err := time.Parse("DateOnly", time.Now().String())
-	if err != nil {
-		return fmt.Errorf("cannot determine today's date")
-	}
-
-	var fileToWrite *os.File
-	logFilename := fmt.Sprintf("%s.txt", todayDate.String())
-
+	// Check if log already exists, if not, create it
 	if _, err := os.Stat(logFilename); os.IsNotExist(err) {
-		fileToWrite, err := os.Create(logFilename)
+		fileToWrite, err = os.Create(logFilename) // Store file handle in a global var
 		if err != nil {
-			defer fileToWrite.Close()
 			return fmt.Errorf("cannot create log file: %w", err)
 		}
 	} else {
-		// append to existing file
-		fileToWrite, err := os.OpenFile(logFilename, os.O_APPEND|os.O_WRONLY, 0644)
+		// Append to existing file
+		fileToWrite, err = os.OpenFile(logFilename, os.O_APPEND|os.O_WRONLY, 0644)
 		if err != nil {
-			defer fileToWrite.Close()
 			return fmt.Errorf("cannot open log file: %w", err)
 		}
 	}
 
+	// Initialize the logger with the file handle
 	Logger = log.New(fileToWrite, "", log.Ldate|log.Ltime)
 	return nil
 }
 
-// Will log an error and exit via os.Exit(1)
-// Caution! Does not execute defer functions
+func closeLogger() {
+	// Ensure the file is closed when the program exits
+	if fileToWrite != nil {
+		fileToWrite.Close()
+	}
+}
+
+// LogFatal logs fatal errors and exits the program
 func LogFatal(message string, err error) {
 	Logger.SetPrefix("FATAL: ")
 	if err != nil {
@@ -50,6 +50,7 @@ func LogFatal(message string, err error) {
 	}
 }
 
+// LogError logs non-fatal errors
 func LogError(message string, err error) {
 	Logger.SetPrefix("ERROR: ")
 	if err != nil {
@@ -59,11 +60,13 @@ func LogError(message string, err error) {
 	}
 }
 
+// LogWarn logs warnings
 func LogWarn(message string) {
 	Logger.SetPrefix("WARN: ")
 	Logger.Println(message)
 }
 
+// LogInfo logs informational messages
 func LogInfo(message string) {
 	Logger.SetPrefix("INFO: ")
 	Logger.Println(message)
