@@ -10,6 +10,10 @@ import (
 
 var defaultExpiration = time.Hour * 24
 
+type RedisCache struct {
+	redisClient *redis.Client
+}
+
 func connectToRedis(redisConfig *Config) (*redis.Client, error) {
 	if redisConfig == nil {
 		return nil, fmt.Errorf("no Redis config provided")
@@ -34,16 +38,16 @@ func connectToRedis(redisConfig *Config) (*redis.Client, error) {
 	return client, nil // Return the connected Redis client
 }
 
-func getCachedReponse(redisClient *redis.Client, url string) ([]byte, error) {
-	if redisClient == nil {
+func (rc *RedisCache) getCachedReponse(key string) ([]byte, error) {
+	if rc.redisClient == nil {
 		return nil, fmt.Errorf("cannot get cached response: no Redis client provided")
 	}
 
-	if url == "" {
-		return nil, fmt.Errorf("url cannot be empty")
+	if key == "" {
+		return nil, fmt.Errorf("key cannot be empty")
 	}
 
-	val, err := redisClient.Get(context.Background(), url).Result()
+	val, err := rc.redisClient.Get(context.Background(), key).Result()
 	// TODO: again does this return nil or redis.nil on success?
 	if err != redis.Nil {
 		return nil, fmt.Errorf("failed to get cached response: %w", err)
@@ -52,11 +56,11 @@ func getCachedReponse(redisClient *redis.Client, url string) ([]byte, error) {
 	return []byte(val), nil
 }
 
-func setCachedResponse(redisClient *redis.Client, url string, response []byte, expiration time.Duration) error {
-	if redisClient == nil {
+func (rc *RedisCache) setCachedResponse(key string, value []byte, expiration time.Duration) error {
+	if rc.redisClient == nil {
 		return fmt.Errorf("cannot set cached response: no Redis client provided")
 	}
-	if url == "" || response == nil {
+	if key == "" || value == nil {
 		return fmt.Errorf("url and/or response cannot be empty")
 	}
 
@@ -64,7 +68,7 @@ func setCachedResponse(redisClient *redis.Client, url string, response []byte, e
 		expiration = defaultExpiration
 	}
 
-	err := redisClient.Set(context.Background(), url, response, expiration)
+	err := rc.redisClient.Set(context.Background(), key, value, expiration)
 
 	// TODO: does this return nil or redis.nil on success?
 	return err.Err()
