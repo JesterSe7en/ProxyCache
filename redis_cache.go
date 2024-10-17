@@ -38,7 +38,7 @@ func connectToRedis(redisConfig *Config) (*redis.Client, error) {
 	return client, nil // Return the connected Redis client
 }
 
-func (rc *RedisCache) getCachedReponse(key string) ([]byte, error) {
+func (rc *RedisCache) getCachedResponse(key string) ([]byte, error) {
 	if rc.redisClient == nil {
 		return nil, fmt.Errorf("cannot get cached response: no Redis client provided")
 	}

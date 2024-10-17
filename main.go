@@ -33,6 +33,7 @@ func main() {
 	}
 
 	// Connect to Redis
+	redisCache := &RedisCache{}
 	redisClient, err := connectToRedis(redisConfig)
 	if err != nil {
 		LogFatal("Cannot connect to Redis", err)
@@ -40,7 +41,8 @@ func main() {
 	if redisClient == nil {
 		LogFatal("Redis client is nil after connection attempt", nil)
 	}
+	redisCache.redisClient = redisClient
 
 	// Start the server
-	startServer(*port, nil, *redirectURL)
+	startServer(*port, redisCache, *redirectURL)
 }
