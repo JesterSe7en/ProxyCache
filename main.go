@@ -5,16 +5,10 @@ import (
 	"os"
 )
 
-type ProxyConfig struct {
-	port        int
-	redirectURL string
-}
-
 func main() {
-	// parse cmd args
-	var port = flag.Int("port", -1, "Required. The port on which the server will listen for incoming requests")
-	var redirectURL = flag.String("redirectURL", "", "Required. The URL of the external service to be proxied")
-
+	// Parse command-line arguments
+	port := flag.Int("port", -1, "Required. The port on which the server will listen for incoming requests")
+	redirectURL := flag.String("redirectURL", "", "Required. The URL of the external service to be proxied")
 	flag.Parse()
 
 	if *port == -1 || *redirectURL == "" {
@@ -22,20 +16,31 @@ func main() {
 		os.Exit(1)
 	}
 
-	var config ProxyConfig
-	config.port = *port
-	config.redirectURL = *redirectURL
-
-	redisConfig, err := loadConfig()
-	if err != nil || redisConfig == nil {
-		LogFatal("cannot load redis config", err)
-	}
-
-	// setup logging and handle basic configuration
-	err = initLogger()
+	// Initialize logger
+	err := initLogger()
+	defer closeLogger()
 	if err != nil {
-		LogError("cannot initialize logger", err)
+		LogFatal("Cannot initialize logger", err)
 	}
 
-	// start the server and connect to other module (Redis)
+	// Load Redis configuration
+	redisConfig, err := loadConfig()
+	if err != nil {
+		LogFatal("Cannot load Redis config", err)
+	}
+	if redisConfig == nil {
+		LogFatal("Redis config is nil", nil)
+	}
+
+	// Connect to Redis
+	redisClient, err := connectToRedis(redisConfig)
+	if err != nil {
+		LogFatal("Cannot connect to Redis", err)
+	}
+	if redisClient == nil {
+		LogFatal("Redis client is nil after connection attempt", nil)
+	}
+
+	// Start the server
+	startServer(*port, nil, *redirectURL)
 }
