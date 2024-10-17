@@ -16,16 +16,20 @@ func connectToRedis(redisConfig *Config) (*redis.Client, error) {
 	}
 
 	client := redis.NewClient(&redis.Options{
-		Addr:     redisConfig.redisURL,
+		Addr:     fmt.Sprintf("%s:%d", redisConfig.redisURL, redisConfig.defaultPort),
 		Password: redisConfig.redisPassword,
 		DB:       redisConfig.databaseIndex,
 	})
+
+	LogInfo(fmt.Sprintf("Attempting to connect to Redis at %s:%d.", redisConfig.redisURL, redisConfig.defaultPort))
 
 	ctx := context.Background()
 	_, err := client.Ping(ctx).Result()
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
+
+	LogInfo("Connected to Redis instance.")
 
 	return client, nil // Return the connected Redis client
 }
