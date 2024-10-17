@@ -1,18 +1,30 @@
 package main
 
 import (
-	"fmt"
+	"flag"
 	"os"
 )
 
+type ProxyConfig struct {
+	port        int
+	redirectURL string
+}
+
 func main() {
 	// parse cmd args
-	args := os.Args[1:]
+	var port = flag.Int("port", -1, "Required. The port on which the server will listen for incoming requests")
+	var redirectURL = flag.String("redirectURL", "", "Required. The URL of the external service to be proxied")
 
-	if len(args) == 0 {
-		fmt.Println("Usage: cacheProxy <port> <redirectURL>")
+	flag.Parse()
+
+	if *port == -1 || *redirectURL == "" {
+		flag.Usage()
 		os.Exit(1)
 	}
+
+	var config ProxyConfig
+	config.port = *port
+	config.redirectURL = *redirectURL
 
 	redisConfig, err := loadConfig()
 	if err != nil || redisConfig == nil {
