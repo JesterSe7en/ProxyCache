@@ -38,6 +38,8 @@ func connectToRedis(redisConfig *Config) (*redis.Client, error) {
 	return client, nil // Return the connected Redis client
 }
 
+// (rc *RedisCache), this is called a pointer reciver
+// the RedisCache refenerece is the original and not a copy
 func (rc *RedisCache) getCachedResponse(key string) ([]byte, error) {
 	if rc.redisClient == nil {
 		return nil, fmt.Errorf("cannot get cached response: no Redis client provided")
