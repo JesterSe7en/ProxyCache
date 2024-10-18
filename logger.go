@@ -7,8 +7,10 @@ import (
 	"time"
 )
 
-var Logger *log.Logger
-var fileToWrite *os.File // Move file handle to a global variable for proper closure handling
+var (
+	Logger      *log.Logger
+	fileToWrite *os.File // Move file handle to a global variable for proper closure handling
+)
 
 func initLogger() error {
 	year, month, day := time.Now().Date()
@@ -44,7 +46,7 @@ func closeLogger() {
 func LogFatal(message string, err error) {
 	Logger.SetPrefix("FATAL: ")
 	if err != nil {
-		Logger.Fatalln(fmt.Sprintf("%s: %v", message, err))
+		Logger.Fatalf("%s: %v", message, err)
 	} else {
 		Logger.Fatalln(message)
 	}
@@ -54,7 +56,7 @@ func LogFatal(message string, err error) {
 func LogError(message string, err error) {
 	Logger.SetPrefix("ERROR: ")
 	if err != nil {
-		Logger.Println(fmt.Sprintf("%s: %v", message, err))
+		Logger.Fatalf("%s: %v", message, err)
 	} else {
 		Logger.Println(message)
 	}
