@@ -12,10 +12,17 @@ type Cache interface {
 }
 
 // Just pass Cache as interfaces are reference types. i.e. this will be passed by reference
-func startServer(port int, cache Cache, redirectURL string) {
-	LogInfo(fmt.Sprintf("Starting server on port %d", port))
-	LogInfo(fmt.Sprintf("Redirect URL: %s", redirectURL))
+func startServer(server *http.Server, cache Cache, redirectURL string) error {
+	if server == nil || redirectURL == "" || cache == nil {
+		LogFatal("invalid arguments provided; cannot start server", nil)
+	}
+
+	LogInfo(fmt.Sprintf("starting server on port %s", server.Addr))
+	LogInfo(fmt.Sprintf("redirect URL: %s", redirectURL))
+
+	return server.ListenAndServe()
 }
 
-func handleRequest(w http.ResponseWriter, r http.Request) {
+func isValidPort(port int) bool {
+	return port > 0 && port <= 65535
 }

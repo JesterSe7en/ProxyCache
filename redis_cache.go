@@ -25,7 +25,7 @@ func connectToRedis(redisConfig *Config) (*redis.Client, error) {
 		DB:       redisConfig.databaseIndex,
 	})
 
-	LogInfo(fmt.Sprintf("Attempting to connect to Redis at %s:%d.", redisConfig.redisURL, redisConfig.defaultPort))
+	LogInfo(fmt.Sprintf("attempting to connect to Redis at %s:%d.", redisConfig.redisURL, redisConfig.defaultPort))
 
 	ctx := context.Background()
 	_, err := client.Ping(ctx).Result()
@@ -33,7 +33,7 @@ func connectToRedis(redisConfig *Config) (*redis.Client, error) {
 		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
-	LogInfo("Connected to Redis instance.")
+	LogInfo("connected to Redis instance.")
 
 	return client, nil // Return the connected Redis client
 }
