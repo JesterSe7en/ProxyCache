@@ -2,7 +2,12 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"net/http"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -38,6 +43,39 @@ func connectToRedis(redisConfig *Config) (*redis.Client, error) {
 	return client, nil // Return the connected Redis client
 }
 
+func getHashKey(req *http.Request) string {
+	// use the SHA256 algo to generate hash
+	// use in combination of the request method, path, and query (sorted)
+
+	// 1. Use the request method
+	method := req.Method
+
+	// 2. Use the full URL path
+	path := req.URL.Path
+
+	// 3. Sort and concatenate query parameters
+	query := req.URL.Query()
+	var queryParams []string
+	for key, values := range query {
+		for _, value := range values {
+			queryParams = append(queryParams, fmt.Sprintf("%s=%s", key, value))
+		}
+	}
+	sort.Strings(queryParams)
+	queryString := strings.Join(queryParams, "&")
+
+	// Combine method, path, and query string to form the raw cache key
+	rawKey := fmt.Sprintf("%s_%s?%s", method, path, queryString)
+
+	// Optional: Hash the key to avoid overly long cache keys
+	hash := sha256.New()
+	hash.Write([]byte(rawKey))
+	hashedKey := hex.EncodeToString(hash.Sum(nil))
+
+	return hashedKey
+
+}
+
 // (rc *RedisCache), this is called a pointer reciver
 // the RedisCache refenerece is the original and not a copy
 func (rc *RedisCache) getCachedResponse(key string) ([]byte, error) {
@@ -50,8 +88,7 @@ func (rc *RedisCache) getCachedResponse(key string) ([]byte, error) {
 	}
 
 	val, err := rc.redisClient.Get(context.Background(), key).Result()
-	// TODO: again does this return nil or redis.nil on success?
-	if err != redis.Nil {
+	if err != nil {
 		return nil, fmt.Errorf("failed to get cached response: %w", err)
 	}
 
