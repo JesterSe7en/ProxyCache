@@ -59,7 +59,7 @@ func main() {
 	go func() {
 		err := startServer(server, redisCache, *redirectURL)
 		if !errors.Is(err, http.ErrServerClosed) {
-			LogError("cannot start web server", err)
+			LogFatal("cannot start web server", err)
 		}
 	}()
 
