@@ -51,6 +51,12 @@ cacheProxy --port <port> --redirectURL <redirectURL>
   -  Understanding of Caching Mechanisms: It showcases my knowledge of caching strategies, which are crucial for optimizing performance in web applications.
   -  Error Handling Proficiency: The project emphasizes my approach to robust error management and handling in backend applications.
 
+## Future Plans 🚀
+
+- Add support for other caching mechanisms, such as Memcached or DynamoDB.
+- Add support for other web services, such as GraphQL or RESTful APIs.
+- Add support for rate limiting and throttling.
+
 ## License 📜
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
