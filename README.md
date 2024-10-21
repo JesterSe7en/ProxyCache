@@ -26,7 +26,19 @@ Additionally, it implements a rate throttling mechanism using token buckets, all
    ```powershell
    go mod tidy
    ```
-3. **Set up Redis**: Install Redis and ensure it is running on your local machine or configure it to connect to a remote Redis server.  This tool assumes Redis instance is running on port 6379.
+3. **Set up Redis**: Install Redis and ensure it is running on your local machine or configure it to connect to a remote Redis server.  This tool assumes Redis instance is running on port 6379.  Optionally, you can create a Redis docker container.  Here's a docker compose config I used on my raspberry pi.  You can use any other Redis instance.
+   ```yaml
+   version: '3.8'
+   services:
+   redis:
+      image: redis:latest
+      restart: always
+      ports:
+         - '6379:6379'
+      command: redis-server --save 60 1 --loglevel warning --requirepass <some_redis_password>
+      volumes:
+         - ./data:/data
+   ```
 4. **Build the Binary**:
    ```powershell
    go build -o ProxyCache.exe
@@ -38,6 +50,7 @@ Additionally, it implements a rate throttling mechanism using token buckets, all
 
 ### Prerequisites
  Ensure that the environment variables `REDIS_URL` and `REDIS_PASSWORD` are set correctly.
+ Also, ensure that your Redis instance is running on port 6379.
 
 Run the ProxyCache CLI tool with the following command:
 ```powershell
