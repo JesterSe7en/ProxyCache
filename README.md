@@ -8,7 +8,7 @@ Additionally, it implements a rate throttling mechanism using token buckets, all
 
 ## Features 🌟
 
-- **Caching Layer**: Automatically caches HTTP responses for frequently accessed resources via Redis, minimizing redundant requests to external services.
+- **Caching Layer**: Automatically caches HTTP responses for frequently accessed resources via Redis, minimizing redundant requests to external services.  Leverages SHA256 to create hash keys.
 - **Redis Integration**: Utilizes Redis as a fast, in-memory key-value store to manage cached responses, ensuring quick access and efficient data retrieval.
 - **Expiration Management**: Manages expiration times for cached entries to prevent serving stale data while optimizing memory usage.
 - **Error Handling**: Robust error management to gracefully handle scenarios where the external service or Redis is unavailable.
