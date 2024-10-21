@@ -42,16 +42,6 @@ func closeLogger() {
 	}
 }
 
-// LogFatal logs fatal errors and exits the program
-func LogFatal(message string, err error) {
-	Logger.SetPrefix("FATAL: ")
-	if err != nil {
-		Logger.Fatalf("%s: %v", message, err)
-	} else {
-		Logger.Fatalln(message)
-	}
-}
-
 // LogError logs non-fatal errors
 func LogError(message string, err error) {
 	Logger.SetPrefix("ERROR: ")

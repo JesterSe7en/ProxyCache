@@ -18,6 +18,8 @@ func main() {
 	redirectURL := flag.String("redirectURL", "", "Required. The URL of the external service to be proxied")
 	flag.Parse()
 
+	// TODO: santatize redirectURL
+
 	if *port == -1 || *redirectURL == "" || !isValidPort(*port) {
 		flag.Usage()
 		os.Exit(1)
@@ -25,53 +27,62 @@ func main() {
 
 	// Initialize logger
 	err := initLogger()
-	defer closeLogger()
 	if err != nil {
-		LogFatal("cannot initialize logger", err)
+		LogError("cannot initialize logger", err)
+		os.Exit(1)
 	}
+	defer closeLogger()
 
 	// Load Redis configuration
 	redisConfig, err := loadConfig()
 	if err != nil {
-		LogFatal("cannot load Redis config", err)
+		LogError("cannot load Redis config", err)
+		os.Exit(1)
 	}
+
 	if redisConfig == nil {
-		LogFatal("redis config is nil", nil)
+		LogError("redis config is nil", nil)
+		os.Exit(1)
 	}
 
 	// Connect to Redis
-	redisCache := &RedisCache{}
+	redisCache := &RedisCache{nil}
 	redisClient, err := connectToRedis(redisConfig)
-	if err != nil {
-		LogFatal("cannot connect to Redis", err)
-	}
-	if redisClient == nil {
-		LogFatal("redis client is nil after connection attempt", nil)
+	if err != nil || redisClient == nil {
+		LogError("cannot connect to Redis", err)
+		os.Exit(1)
 	}
 	redisCache.redisClient = redisClient
 
-	// ---------------------- Start HTTP server ----------------------
-	// https://dev.to/mokiat/proper-http-shutdown-in-go-3fji
+	// Start HTTP server
 	server := &http.Server{
 		Addr: fmt.Sprintf(":%d", *port),
 	}
 
+	tb := NewTokenBucket(100, 10, 1*time.Second)
+	go tb.refillTokens()
+	defer tb.stop()
+
 	go func() {
-		err := startServer(server, redisCache, *redirectURL)
+		err := startServer(server, redisCache, *redirectURL, tb)
 		if !errors.Is(err, http.ErrServerClosed) {
-			LogFatal("cannot start web server", err)
+			LogError("cannot start web server", err)
+			return
 		}
 	}()
 
+	// Handle system signals
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM) // respond to SIGINT(ctrl+c) and SIGTERM (system asks the program to terminate gracefully)
-	<-sigChan                                               // block until a signal is received
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	<-sigChan
 
-	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second) // 10 seconds wait for graceful shutdown
+	// Shutdown the server gracefully
+	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 10*time.Second)
 	defer shutdownRelease()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		LogFatal("could not shutdown server gracefully: %v", err)
+		LogError("could not shutdown server gracefully: %v", err)
+		os.Exit(1)
 	}
 	LogInfo("server gracefully shutdown.")
 }
