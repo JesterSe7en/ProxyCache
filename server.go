@@ -13,14 +13,21 @@ type Cache interface {
 }
 
 // Just pass Cache as interfaces are reference types. i.e. this will be passed by reference
-func startServer(server *http.Server, cache Cache, redirectURL string) error {
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		RootHandler(w, r, cache, redirectURL)
-	})
-	if server == nil || redirectURL == "" || cache == nil {
+func startServer(server *http.Server, cache Cache, redirectURL string, tb *TokenBucket) error {
+	if server == nil || redirectURL == "" || cache == nil || tb == nil {
 		return fmt.Errorf("invalid arguments provided; cannot start server")
 	}
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		success := tb.TakeToken()
+
+		if !success {
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+
+		RootHandler(w, r, cache, redirectURL)
+	})
 
 	LogInfo(fmt.Sprintf("starting server on port %s", server.Addr))
 	LogInfo(fmt.Sprintf("redirect URL: %s", redirectURL))
